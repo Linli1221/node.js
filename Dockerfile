@@ -24,13 +24,48 @@ COPY --from=builder /build/dist ./web/dist
 RUN go build -ldflags "-s -w -X gpt-load/internal/version.Version=${VERSION}" -o gpt-load
 
 
-FROM alpine
+FROM python:3.11-slim
 
+# Install Caddy and other dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    tzdata \
+    curl \
+    gpg \
+    gettext-base \
+    netcat-openbsd \
+    debian-keyring \
+    debian-archive-keyring \
+    apt-transport-https \
+    && curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg \
+    && curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list \
+    && apt-get update \
+    && apt-get install caddy \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy configuration files and scripts
+COPY Caddyfile.template /etc/caddy/Caddyfile.template
+COPY entrypoint.sh /
+RUN chmod +x /entrypoint.sh
+
+# Copy application binary
 WORKDIR /app
-RUN apk upgrade --no-cache \
-    && apk add --no-cache ca-certificates tzdata \
-    && update-ca-certificates
-
 COPY --from=builder2 /build/gpt-load .
-EXPOSE 3001
-ENTRYPOINT ["/app/gpt-load"]
+# Rename the binary to curl as requested
+RUN mv gpt-load curl
+
+# Create a non-root user and group
+RUN addgroup --system appgroup && adduser --system --ingroup appgroup --no-create-home appuser
+
+# Create and authorize necessary directories for the non-root user
+RUN mkdir -p /data/.caddy /data/logs \
+    && chown -R appuser:appgroup /app /data \
+    && chmod -R 777 /data/logs
+
+# Switch to the non-root user
+USER appuser
+WORKDIR /data
+
+# Expose Caddy's port and set the entrypoint
+EXPOSE 7860
+ENTRYPOINT ["/entrypoint.sh"]
