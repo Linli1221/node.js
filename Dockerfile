@@ -62,6 +62,7 @@ RUN addgroup --system appgroup && adduser --system --ingroup appgroup --no-creat
 # Create and authorize necessary directories for the non-root user
 RUN mkdir -p /data/.caddy /data/logs \
     && chown -R appuser:appgroup /app /data \
+    && chown appuser:appgroup /data/Caddyfile.template \
     && chmod -R 777 /data/logs
 
 # Switch to the non-root user
