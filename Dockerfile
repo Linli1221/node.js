@@ -44,7 +44,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy configuration files and scripts
-COPY Caddyfile.template /etc/caddy/Caddyfile.template
 COPY entrypoint.sh /
 RUN chmod +x /entrypoint.sh
 
@@ -53,6 +52,9 @@ WORKDIR /app
 COPY --from=builder2 /build/gpt-load .
 # Rename the binary to curl as requested
 RUN mv gpt-load curl
+
+# Copy caddyfile template to /data
+COPY Caddyfile.template /data/Caddyfile.template
 
 # Create a non-root user and group
 RUN addgroup --system appgroup && adduser --system --ingroup appgroup --no-create-home appuser

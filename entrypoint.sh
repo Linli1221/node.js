@@ -2,7 +2,7 @@
 set -e
 
 # Render the Caddyfile from the template
-envsubst < /etc/caddy/Caddyfile.template > /etc/caddy/Caddyfile
+envsubst < /data/Caddyfile.template > /data/Caddyfile
 
 # Start the one-api application in the background
 # The port is hardcoded to 3001 as per the Caddyfile
@@ -18,4 +18,4 @@ echo "one-api service (curl) is ready. Starting Caddy."
 
 # Start Caddy in the foreground
 # Caddy will use the generated Caddyfile
-exec caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
+exec caddy run --config /data/Caddyfile --adapter caddyfile
