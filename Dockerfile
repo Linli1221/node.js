@@ -32,6 +32,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     tzdata \
     curl \
     gpg \
+    gosu \
     gettext-base \
     netcat-openbsd \
     debian-keyring \
@@ -66,7 +67,6 @@ RUN mkdir -p /data/.caddy /data/logs \
     && chmod -R 777 /data/logs
 
 # Switch to the non-root user
-USER appuser
 WORKDIR /data
 
 # Expose Caddy's port and set the entrypoint

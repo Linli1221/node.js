@@ -1,12 +1,15 @@
 #!/bin/sh
 set -e
 
-# Render the Caddyfile from the template
+# Render the Caddyfile from the template as root
 envsubst < /data/Caddyfile.template > /data/Caddyfile
 
-# Start the one-api application in the background
-# The port is hardcoded to 3001 as per the Caddyfile
-/app/curl --port 3001 &
+# Ensure all necessary directories exist and have correct permissions
+chown -R appuser:appgroup /data
+chmod -R 777 /data/logs
+
+# Start the one-api application in the background as appuser
+gosu appuser /app/curl --port 3001 &
 
 # Wait for the one-api to be ready on port 3001
 while ! nc -z 127.0.0.1 3001; do
@@ -14,8 +17,7 @@ while ! nc -z 127.0.0.1 3001; do
   sleep 1
 done
 
-echo "one-api service (curl) is ready. Starting Caddy."
+echo "one-api service (curl) is ready. Starting Caddy as appuser."
 
-# Start Caddy in the foreground
-# Caddy will use the generated Caddyfile
-exec caddy run --config /data/Caddyfile --adapter caddyfile
+# Start Caddy in the foreground as appuser
+exec gosu appuser caddy run --config /data/Caddyfile --adapter caddyfile
