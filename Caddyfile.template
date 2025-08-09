@@ -12,5 +12,5 @@
     reverse_proxy @edgeone localhost:3001
 
     # 所有其他请求代理到下游应用
-    reverse_proxy localhost:{{.DOWNSTREAM_PORT | default "3002"}}
+    reverse_proxy localhost:{{.DOWNSTREAM_PORT | default "3001"}}
 }

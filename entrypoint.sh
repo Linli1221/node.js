@@ -4,12 +4,8 @@ set -e
 # 设置一个可写的主目录
 export HOME=/data
 
-# 设置下游应用端口
-DOWNSTREAM_PORT=${DOWNSTREAM_PORT:-3002}
-
 # 生成 Caddyfile (运行在用户模式下)
-sed "s,{{.DOWNSTREAM_PORT | default \"3002\"}},$DOWNSTREAM_PORT," /data/Caddyfile.template > /tmp/Caddyfile
-
+cp /data/Caddyfile.template /tmp/Caddyfile
 # 在后台启动主应用程序并显示日志
 if [ -f "/app/curl" ]; then
     echo "Starting one-api service (curl)..."
