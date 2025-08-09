@@ -32,8 +32,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     tzdata \
     curl \
     gpg \
-    gosu \
-    gettext-base \
     netcat-openbsd \
     debian-keyring \
     debian-archive-keyring \
@@ -45,6 +43,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy configuration files and scripts
+COPY Caddyfile.template /data/Caddyfile.template
 COPY entrypoint.sh /
 RUN chmod +x /entrypoint.sh
 
@@ -54,19 +53,10 @@ COPY --from=builder2 /build/gpt-load .
 # Rename the binary to curl as requested
 RUN mv gpt-load curl
 
-# Copy caddyfile template to /data
-COPY Caddyfile.template /data/Caddyfile.template
+# Create necessary directories
+RUN mkdir -p /data/.caddy /data/logs
 
-# Create a non-root user and group
-RUN addgroup --system appgroup && adduser --system --ingroup appgroup --no-create-home appuser
-
-# Create and authorize necessary directories for the non-root user
-RUN mkdir -p /data/.caddy /data/logs \
-    && chown -R appuser:appgroup /app /data \
-    && chown appuser:appgroup /data/Caddyfile.template \
-    && chmod -R 777 /data/logs
-
-# Switch to the non-root user
+# Set working directory
 WORKDIR /data
 
 # Expose Caddy's port and set the entrypoint

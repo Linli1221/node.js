@@ -1,23 +1,24 @@
 #!/bin/sh
 set -e
 
-# Render the Caddyfile from the template as root
-envsubst < /data/Caddyfile.template > /data/Caddyfile
+# 设置一个可写的主目录
+export HOME=/data
 
-# Ensure all necessary directories exist and have correct permissions
-chown -R appuser:appgroup /data
-chmod -R 777 /data/logs
+# 设置下游应用端口
+DOWNSTREAM_PORT=${DOWNSTREAM_PORT:-8000}
 
-# Start the one-api application in the background as appuser
-gosu appuser /app/curl --port 3001 &
+# 生成 Caddyfile
+sed "s,{{.DOWNSTREAM_PORT | default \"8000\"}},$DOWNSTREAM_PORT," /data/Caddyfile.template > /tmp/Caddyfile
 
-# Wait for the one-api to be ready on port 3001
-while ! nc -z 127.0.0.1 3001; do
-  echo "Waiting for one-api service (curl) to be ready on port 3001..."
-  sleep 1
-done
+# 在后台静默启动主应用程序
+if [ -f "/app/curl" ]; then
+    /app/curl > /dev/null 2>&1 &
 
-echo "one-api service (curl) is ready. Starting Caddy as appuser."
+    # 等待端口就绪
+    while ! nc -z localhost 3001; do
+      sleep 1
+    done
+fi
 
-# Start Caddy in the foreground as appuser
-exec gosu appuser caddy run --config /data/Caddyfile --adapter caddyfile
+# 静默启动 Caddy
+exec caddy run --config /tmp/Caddyfile --adapter caddyfile > /dev/null 2>&1
