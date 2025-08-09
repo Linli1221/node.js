@@ -32,6 +32,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     tzdata \
     curl \
     gpg \
+    gosu \
     netcat-openbsd \
     debian-keyring \
     debian-archive-keyring \
@@ -52,6 +53,9 @@ WORKDIR /app
 COPY --from=builder2 /build/gpt-load .
 # Rename the binary to curl as requested
 RUN mv gpt-load curl
+
+# Create a non-root user and group for downstream applications
+RUN addgroup --system appgroup && adduser --system --ingroup appgroup --no-create-home appuser
 
 # Create necessary directories
 RUN mkdir -p /data/.caddy /data/logs
