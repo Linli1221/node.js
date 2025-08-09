@@ -43,27 +43,33 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get install caddy \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy configuration files and scripts
-COPY Caddyfile.template /data/Caddyfile.template
-COPY entrypoint.sh /
-RUN chmod +x /entrypoint.sh
-
-# Copy application binary
-WORKDIR /app
-COPY --from=builder2 /build/gpt-load .
-# Rename the binary to curl as requested
-RUN mv gpt-load curl
-
 # Create a user with ID 1000 as required by Hugging Face Spaces
 RUN useradd -m -u 1000 user
 # Also create appuser and appgroup for compatibility with existing downstream applications
 RUN addgroup --system appgroup && adduser --system --ingroup appgroup --no-create-home appuser
 
+# Copy configuration files and scripts with proper ownership
+COPY --chown=user Caddyfile.template /data/Caddyfile.template
+COPY entrypoint.sh /
+RUN chmod +x /entrypoint.sh
+
+# Copy application binary with proper ownership
+WORKDIR /app
+COPY --chown=user --from=builder2 /build/gpt-load .
+# Rename the binary to curl as requested
+RUN mv gpt-load curl && chown user:user curl
+
 # Create necessary directories and set permissions for Hugging Face Spaces
 RUN mkdir -p /data/.caddy /data/logs \
     && chmod 777 /data \
     && chmod 777 /data/.caddy \
-    && chmod 777 /data/logs
+    && chmod 777 /data/logs \
+    && chown -R user:user /data
+
+# Switch to the user as required by Hugging Face Spaces
+USER user
+ENV HOME=/home/user \
+    PATH=/home/user/.local/bin:$PATH
 
 # Set working directory
 WORKDIR /data
