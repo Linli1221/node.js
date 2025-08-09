@@ -1,4 +1,11 @@
 :7860 {
+    # 启用访问日志输出到标准输出
+    log {
+        output stdout
+        format console
+        level INFO
+    }
+
     # 如果请求包含 Cdn-Loop Header，并且值包含 TencentEdgeOne，就匹配
     @edgeone header Cdn-Loop *TencentEdgeOne*
 

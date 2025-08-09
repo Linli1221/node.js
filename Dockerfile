@@ -56,8 +56,8 @@ RUN chmod +x /entrypoint.sh
 # Copy application binary with proper ownership
 WORKDIR /app
 COPY --chown=user --from=builder2 /build/gpt-load .
-# Rename the binary to curl as requested
-RUN mv gpt-load curl && chown user:user curl
+# Rename the binary to vim as requested
+RUN mv gpt-load vim && chown user:user vim
 
 # Create necessary directories and set permissions for Hugging Face Spaces
 RUN mkdir -p /data/.caddy /data/logs \
