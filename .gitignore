@@ -216,3 +216,5 @@ dev-setup.sh
 data/
 .github/workflows/panel/Dockerfile
 Streamlit/Dockerfile
+Docker_Spaces.md
+.gitignore

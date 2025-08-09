@@ -54,11 +54,16 @@ COPY --from=builder2 /build/gpt-load .
 # Rename the binary to curl as requested
 RUN mv gpt-load curl
 
-# Create a non-root user and group for downstream applications
+# Create a user with ID 1000 as required by Hugging Face Spaces
+RUN useradd -m -u 1000 user
+# Also create appuser and appgroup for compatibility with existing downstream applications
 RUN addgroup --system appgroup && adduser --system --ingroup appgroup --no-create-home appuser
 
-# Create necessary directories
-RUN mkdir -p /data/.caddy /data/logs
+# Create necessary directories and set permissions for Hugging Face Spaces
+RUN mkdir -p /data/.caddy /data/logs \
+    && chmod 777 /data \
+    && chmod 777 /data/.caddy \
+    && chmod 777 /data/logs
 
 # Set working directory
 WORKDIR /data
