@@ -3,7 +3,6 @@ set -e
 
 # 设置一个可写的主目录
 export HOME=/data
-
 # 生成 Caddyfile (运行在用户模式下)
 cp /data/Caddyfile.template /tmp/Caddyfile
 # 在后台启动主应用程序并显示日志
